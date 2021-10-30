@@ -26,12 +26,6 @@ public class MainPanel {
     private int indexRegister2 = 0;
     private int indexRegister3 = 0;
 
-    private int pc = 0;
-    private int mar = 0;
-    private int mbr = 0;
-    private int IR = 0;
-    private int MFR = 0;
-
     private JRadioButton gpr0_rb1;
     private JRadioButton gpr0_rb2;
     private JRadioButton gpr0_rb3;
@@ -266,8 +260,8 @@ public class MainPanel {
     private JRadioButton pc_rb8;
     private JRadioButton pc_rb9;
     private JRadioButton pc_rb10;
-    private JRadioButton pc_rb11;
     private JRadioButton pc_rb12;
+    private JRadioButton pc_rb11;
     private JRadioButton mar_rb1;
     private JRadioButton mar_rb2;
     private JRadioButton mar_rb3;
@@ -442,6 +436,8 @@ public class MainPanel {
     private JLabel label_command;
     private JLabel WarmingLabel;
     private JButton runButton;
+    private JTextPane consoleText;
+    private JButton testProgram1Button;
 
     private ArrayList<JRadioButton> gpr0RadList = new ArrayList<JRadioButton>();
     private ArrayList<JLabel> gpr0LabelList = new ArrayList<JLabel>();
@@ -966,7 +962,6 @@ public class MainPanel {
                         setWarmingLabel("Invalid Input");
                     }else {
                         setPCData(data);
-                        pc = binToInt(data);
                     }
                 }else{
                     setWarmingLabel("Invalid Input");
@@ -983,7 +978,6 @@ public class MainPanel {
                         setWarmingLabel("Invalid Input");
                     }else {
                         setMARData(data);
-                        mar = binToInt(data);
                     }
                 }else{
                     setWarmingLabel("Invalid Input");
@@ -1000,7 +994,6 @@ public class MainPanel {
                         setWarmingLabel("Invalid Input");
                     }else {
                         setMBRData(data);
-                        mbr = binToInt(data);
                     }
                 }else{
                     setWarmingLabel("Invalid Input");
@@ -1017,7 +1010,6 @@ public class MainPanel {
                         setWarmingLabel("Invalid Input");
                     }else {
                         setIRData(data);
-                        IR = binToInt(data);
                     }
                 }else{
                     setWarmingLabel("Invalid Input");
@@ -1122,16 +1114,32 @@ public class MainPanel {
                                 }
                                 break;
                             }
-                            case 4:{
+                            case 4: {                      //Store Instructions into Memory
+                                AddMemoryToRegister(realAddress, realValue.get("register"));
                                 break;
                             }
-                            case 5:{
+                            case 5: {
+                                SubMemoryFromRegister(realAddress, realValue.get("register"));  //Function to Subtract EA from Register Value
+                                //where is the value show or get
                                 break;
                             }
-                            case 6:{
+                            case 6: {
+                                int immediate = realValue.get("address");
+                                if (immediate!=0)
+                                {
+                                    //add value to register if and only if immediate address has a value
+                                    AddImmToRegister(immediate, realValue.get("register"));
+                                }
+
                                 break;
                             }
-                            case 7:{
+                            case 7: {
+                                int immediate = realValue.get("address");
+                                if(immediate!=0)
+                                {
+                                    //subtract value from register if and only if immediate address has a value
+                                    SubImmFromRegister(immediate, realValue.get("register"));
+                                }
                                 break;
                             }
                             case 10:{
@@ -1166,6 +1174,34 @@ public class MainPanel {
                                 jumpGreaterOrEqual(realAddress, realValue.get("address"));
                                 break;
                             }
+                            case 20:{
+                                MultiplyRegbyRegister(realValue.get("rx"),realValue.get("ry"));
+                            }
+
+                            case 21:{
+                                DivideRegbyRegister(realValue.get("rx"), realValue.get("ry"));
+                            }
+                            case 22:{
+                                TestEqualityofRegister(realValue.get("rx"), realValue.get("ry"));
+                            }
+
+                            case 23:{
+                                AndofRegister(realValue.get("rx"), realValue.get("ry"));
+                            }
+
+                            case 24:{
+                                ORofRegister(realValue.get("rx"), realValue.get("ry"));
+                            }
+
+                            case 25:{
+                                NOTofRegister(realValue.get("rx"));
+                            }
+                            case 31:{
+                                shiftRegisterByCount(realValue.get("Count"), realValue.get("register"), realValue.get("AL"), realValue.get("LR"));
+                            }
+                            case 32:{
+                                rotateRegisterByCount(realValue.get("Count"), realValue.get("register"), realValue.get("AL"), realValue.get("LR"));
+                            }
                             case 41: {
                                 if (!memory.containsKey(realAddress)) {
                                     setWarmingLabel("");
@@ -1178,6 +1214,17 @@ public class MainPanel {
                                 storeIRtoMem(realAddress, getIRegValue(realValue.get("register")));  //where is the value show or get
                                 break;
                             }
+                            case 61:{
+                                // create devid to record the device id and store it as an argument in function
+                                inputValue(realValue.get("register"),realValue.get("devid"));
+
+                            }
+
+                            case 62:{
+                                // create devid to record the device id and store it as an argument in function
+                                outputValue(realValue.get("register"),realValue.get("devid"));
+
+                            }
                         }
                     }
                 }else{
@@ -1188,6 +1235,23 @@ public class MainPanel {
     }
 
     boolean setGPRData(int index, int data[]) {
+        switch (index){
+            case 0:{
+                register0 = binToInt(data);
+                break;
+            }
+            case 1:{
+                register1 = binToInt(data);
+                break;
+            }
+            case 2:{
+                register2 = binToInt(data);
+            }
+            case 3:{
+                register3 = binToInt(data);
+            }
+        }
+
         ArrayList<JRadioButton> re_gprRad = gprRadList.get(index);
         ArrayList<JLabel> re_gprLabel = gprLabelList.get(index);
         if(data.length != 16){
@@ -1206,6 +1270,19 @@ public class MainPanel {
     }
 
     boolean setIXRData(int index, int data[]) {
+        switch (index){
+            case 0:{
+                indexRegister1 = binToInt(data);
+                break;
+            }
+            case 1:{
+                indexRegister2 = binToInt(data);
+            }
+            case 2:{
+                indexRegister3 = binToInt(data);
+            }
+        }
+
         ArrayList<JRadioButton> re_ixrRad = ixrRadList.get(index);
         ArrayList<JLabel> re_ixrLabel = ixrLabelList.get(index);
         if(data.length != 16){
@@ -1338,11 +1415,11 @@ public class MainPanel {
     int[] intToBin(int data, int range){
         int[] re = new int[range];
         String temp = Integer.toBinaryString(data);
-        for(int i = 0; i < 16; i++){
-            if(i < (16 - temp.length())){
+        for(int i = 0; i < range; i++){
+            if(i < (range - temp.length())){
                 re[i] = 0;
             }else {
-                re[i] = Integer.parseInt(String.valueOf(temp.charAt(i - (16 - temp.length()))));
+                re[i] = Integer.parseInt(String.valueOf(temp.charAt(i - (range - temp.length()))));
             }
         }
         return re;
@@ -1488,7 +1565,7 @@ public class MainPanel {
                 String LR = data.substring(9,10);
                 String Count = data.substring(12,16);
 
-                res.put("r", Integer.parseInt(r,2));
+                res.put("register", Integer.parseInt(r,2));
                 res.put("AL", Integer.parseInt(AL,2));
                 res.put("LR", Integer.parseInt(LR,2));
                 res.put("Count", Integer.parseInt(Count,2));
@@ -1500,7 +1577,7 @@ public class MainPanel {
                 String r = data.substring(6,8);
                 String DevID = data.substring(11,16);
 
-                res.put("r", Integer.parseInt(r,2));
+                res.put("register", Integer.parseInt(r,2));
                 res.put("DevID", Integer.parseInt(DevID,2));
                 break;
             }
@@ -1565,6 +1642,42 @@ public class MainPanel {
         setGPRData(index -1, data);
     }
 
+    void AddMemoryToRegister(int real_address, int index){
+        // Function adds memory to register selected
+        int regvalue = getRegValue(index);
+        int AMR_Value = real_address + regvalue;
+        int[] AMR_ARR = intToBin(AMR_Value,16);
+        setGPRData(index, AMR_ARR);
+
+    }
+
+    void SubMemoryFromRegister(int real_address, int index){
+        int regvalue = getRegValue(index); // find the value of the register
+        //function subtracts memory from register selected
+        int SMR_Value = regvalue -  real_address;
+        int[] SMR_ARR = intToBin(SMR_Value,16); // create the resulting register value to a binary
+        setGPRData(index, SMR_ARR);
+
+    }
+
+    void AddImmToRegister(int imm, int index){
+        int regvalue = getRegValue(index); // find the value of the register
+        // Function adds immediate to register selected
+        int AIR_Value = regvalue + imm;
+        int[] AIR_ARR = intToBin(AIR_Value,16); // create the resulting register value to a binary
+        setGPRData(index, AIR_ARR);
+
+    }
+
+    void SubImmFromRegister(int imm, int index){
+        int regvalue = getRegValue(index); // find the value of the register
+        //function subtracts immediate from register selected
+        int SIR_Value = regvalue -  imm;
+        int[] SIR_ARR = intToBin(SIR_Value,16); // create the resulting register value to a binary
+        setGPRData(index, SIR_ARR);
+
+    }
+
     void loadIRfromMem(int address, int index){
         int value = memory.get(address);
         setWarmingLabel("The address " + Integer.toString(address) + " is " + Integer.toString(value));
@@ -1604,6 +1717,7 @@ public class MainPanel {
     }
 
     void jumpConditionCode(int address, int cc){
+        int pc = binToInt(getPCValue());
         if(cc < 2){
             setPCData(intToBin(address,12));
         }else{
@@ -1627,7 +1741,9 @@ public class MainPanel {
     }
 
     void subOneAndBranch(int r, int address){
-        setGPRData(r,intToBin(getRegValue(r) - 1, 16));
+        if(getRegValue(r) != 0){
+            setGPRData(r,intToBin(getRegValue(r) - 1, 16));
+        }
         if(getRegValue(r) > 0){
             setPCData(intToBin(address, 12));
         }else{
@@ -1641,6 +1757,242 @@ public class MainPanel {
         }
         else{
             setPCData(intToBin(binToInt(getPCValue()) + 1, 12));
+        }
+    }
+
+    void MultiplyRegbyRegister(int rx, int ry){
+
+        if (ry!=1||ry!=3)
+        {
+            if (rx!=1||rx!=3)
+            {
+                int value_mult = getRegValue(rx) * getRegValue(ry);
+                int[] answer = intToBin(value_mult,32);
+                int[] highOrder = new int[16];
+                int[] lowOrder = new int[16];
+                for(int i = 0; i < 16; i++){
+                    highOrder[i] = answer[i];
+                    lowOrder[i] = answer[16+i];
+                }
+                setGPRData(rx,highOrder);
+                setGPRData(ry+1, lowOrder);
+            }
+        }
+    }
+
+    void DivideRegbyRegister(int rx, int ry){
+        if (ry!=1||ry!=3)
+        {
+            if (rx!=1||rx!=3)
+            {
+                if(getRegValue(ry) == 0){
+                    setWarmingLabel("DIVZERO");
+                }else {
+                    int value_avg = getRegValue(rx) / getRegValue(ry);
+                    int[] answer = intToBin(value_avg, 32);
+                    int[] highOrder = new int[16];
+                    int[] lowOrder = new int[16];
+                    for(int i = 0; i < 16; i++){
+                        highOrder[i] = answer[i];
+                        lowOrder[i] = answer[16+i];
+                    }
+                    setGPRData(rx, highOrder);
+                    setGPRData(ry, lowOrder);
+                }
+            }
+        }
+    }
+
+    void TestEqualityofRegister (int rx, int ry){
+        if(getRegValue(rx) == getRegValue(ry)){
+            setGPRData(3, intToBin(1,16));
+        }else{
+            setGPRData(3, intToBin(0,16));
+        }
+
+    }
+
+    void AndofRegister(int rx, int ry){
+        int[] xValue = intToBin(getRegValue(rx),16);
+        int[] yValue = intToBin(getRegValue(ry),16);
+        int[] res = new int[16];
+        for(int i = 0; i < 16; i++){
+            if(xValue[i] == 1 && yValue[i] == 1){
+                res[i] = 1;
+            }else{
+                res[i] = 0;
+            }
+        }
+        setGPRData(rx, res);
+    }
+
+    void ORofRegister(int rx, int ry){
+        int[] xValue = intToBin(getRegValue(rx),16);
+        int[] yValue = intToBin(getRegValue(ry),16);
+        int[] res = new int[16];
+        for(int i = 0; i < 16; i++){
+            if(xValue[i] == 0 && yValue[i] == 0){
+                res[i] = 0;
+            }else{
+                res[i] = 1;
+            }
+        }
+        setGPRData(rx, res);
+    }
+
+    void NOTofRegister(int rx){
+        int[] xValue = intToBin(getRegValue(rx),16);
+        int[] res = new int[16];
+        for(int i = 0; i < 16; i++){
+            if(xValue[i] == 0 ){
+                res[i] = 1;
+            }else{
+                res[i] = 0;
+            }
+        }
+        setGPRData(rx, res);
+    }
+
+    void shiftRegisterByCount(int count, int index, int AL, int RL){
+        int[] rValue = intToBin(getRegValue(index), 16);
+        int[] re = new int[16];
+        for (int i = 0; i < 16; i++){
+            if(AL == 1){
+                if (RL == 1){
+                    if((i - count) < 0){
+                        re[i - count + 16] = rValue[i];
+                    }else{
+                        re[i - count] = rValue[i];
+                    }
+                }else{
+                    if((i + count) >= 16){
+                        re[i + count - 16] = rValue[i];
+                    }else{
+                        re[i + count] = rValue[i];
+                    }
+                }
+            }else{
+                if(i == 0){
+                    re[i] = rValue[i];
+                }else{
+                    if (RL == 1){
+                        if((i - count) < 0){
+                            re[i - count + 15] = rValue[i];
+                        }else{
+                            re[i - count] = rValue[i];
+                        }
+                    }else{
+                        if((i + count) >= 15){
+                            re[i + count - 15] = rValue[i];
+                        }else{
+                            re[i + count] = rValue[i];
+                        }
+                    }
+                }
+            }
+        }
+        setGPRData(index, re);
+    }
+
+    void rotateRegisterByCount(int count, int index, int AL, int RL){
+        int[] rValue = intToBin(getRegValue(index), 16);
+        int[] re = new int[16];
+        for (int i = 0; i < 16; i++){
+            if(AL == 1){
+                if (RL == 1){
+                    if((i - count) < 0){
+                        re[i - count + 16] = rValue[i];
+                    }else{
+                        re[i - count] = rValue[i];
+                    }
+                }else{
+                    if((i + count) >= 16){
+                        re[i + count - 16] = rValue[i];
+                    }else{
+                        re[i + count] = rValue[i];
+                    }
+                }
+            }else{
+                if(i == 0){
+                    re[i] = rValue[i];
+                }else{
+                    if (RL == 1){
+                        if((i - count) < 0){
+                            re[i - count + 15] = rValue[i];
+                        }else{
+                            re[i - count] = rValue[i];
+                        }
+                    }else{
+                        if((i + count) >= 15){
+                            re[i + count - 15] = rValue[i];
+                        }else{
+                            re[i + count] = rValue[i];
+                        }
+                    }
+                }
+            }
+        }
+        setGPRData(index, re);
+    }
+
+
+    void inputValue(int index, int device_id){
+
+        String charValue;
+        int chartest;
+
+        //defining character to get value from action listener
+        if(device_id==0)
+        {
+            String device = "Console Keyboard";
+
+            // Zhuobin you would need to edit this
+            charValue = commandText.getText();
+
+            chartest = Integer.parseInt(charValue,10);
+
+            int[] Char_ARR = intToBin(chartest,16); // create the resulting register value to a binary
+            setGPRData(index, Char_ARR);
+        }else if(device_id==2)
+        {
+            String device = "Card Reader";
+
+            charValue = consoleText.getText();
+
+            chartest = Integer.parseInt(charValue,10);
+
+            int[] Char_ARR = intToBin(chartest,16); // create the resulting register value to a binary
+            setGPRData(index, Char_ARR);
+
+        }else
+        {
+            System.out.println("Enter Proper Value For Input");
+        }
+
+    }
+
+    void outputValue(int index, int device_id){
+
+        if(device_id==1)
+        {
+            String device = "Console Printer";
+
+            int charValue = getRegValue(index);
+
+            if(charValue>=0 && charValue<=127) //checking for ASCII value
+            {
+                char outval = (char) charValue;
+                // Zhuobin you would need to edit this
+                consoleText.setText("");
+            }
+            else
+            {
+                System.out.println("This is not a character");
+            }
+
+        }else
+        {
+            System.out.println("Enter Proper Value For Output");
         }
     }
 
