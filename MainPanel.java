@@ -6,6 +6,8 @@ import java.awt.*;
 import java.awt.desktop.SystemEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +18,9 @@ public class MainPanel {
     private HashMap<Integer, Integer> memory;
     private int memoryStart = 10;
     private int usefulStart = 10;
+    private int base = 10; // starting memory location
+    private int inputCount = 0;
+    private boolean program1 = false;
 
     private int register0 = 0 ;
     private int register1 = 0 ;
@@ -1232,6 +1237,37 @@ public class MainPanel {
                 }
             }
         });
+        consoleText.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                super.keyTyped(e);
+
+                if(e.getKeyChar() == '\n'){
+                    if(program1) {
+                        inputCount++;
+                        inputValue(0, 0);
+                        if (inputCount == 20) {
+                            storeRegtoMem(base, getRegValue(0));
+                            consoleText.setText("Please insert number to search:\n");
+                        } else if (inputCount == 21) {
+                            inputCount = 0;
+                            Search_20_Numbers(0);
+                            program1 = false;
+                        } else {
+                            storeRegtoMem(base, getRegValue(0));
+                            base ++;
+                        }
+                    }
+                }
+            }
+        });
+        testProgram1Button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                consoleText.setText("Test programme 1 starts:\n");
+                program1 = true;
+            }
+        });
     }
 
     boolean setGPRData(int index, int data[]) {
@@ -1947,9 +1983,10 @@ public class MainPanel {
             String device = "Console Keyboard";
 
             // Zhuobin you would need to edit this
-            charValue = commandText.getText();
+            charValue = consoleText.getText();
 
-            chartest = Integer.parseInt(charValue,10);
+            String[] tmp = charValue.split(String.valueOf('\n'));
+            chartest = Integer.parseInt(tmp[tmp.length-1],10);
 
             int[] Char_ARR = intToBin(chartest,16); // create the resulting register value to a binary
             setGPRData(index, Char_ARR);
@@ -1979,16 +2016,16 @@ public class MainPanel {
 
             int charValue = getRegValue(index);
 
-            if(charValue>=0 && charValue<=127) //checking for ASCII value
-            {
-                char outval = (char) charValue;
-                // Zhuobin you would need to edit this
-                consoleText.setText("");
-            }
-            else
-            {
-                System.out.println("This is not a character");
-            }
+            consoleText.setText(Integer.toString(charValue));
+//            if(charValue>=0 && charValue<=127) //checking for ASCII value
+//            {
+//                // Zhuobin you would need to edit this
+//                consoleText.setText(Integer.toString(charValue));
+//            }
+//            else
+//            {
+//                System.out.println("This is not a character");
+//            }
 
         }else
         {
@@ -2079,5 +2116,35 @@ public class MainPanel {
             }
         }
 
+    }
+
+    void Search_20_Numbers(int indx)
+    {
+        int searchnumber = getRegValue(indx);
+        int localBase = 10;
+        int diff = 65535;
+        int closest_address = localBase;
+
+        for(int i=localBase ; i<(localBase+20) ; i++)
+        {
+            int searchsample = memory.get(i);
+            if(searchsample==0)
+            {
+                System.out.println("Please fill all 20 values");
+                break;
+            }
+            int dif_comp = (searchsample - searchnumber);
+            if(Math.abs(dif_comp)<diff)
+            {
+                diff = Math.abs(dif_comp);
+                closest_address = i;
+            }
+        }
+
+        if(diff<65535)
+        {
+            loadRegfromMem(closest_address,2);
+            outputValue(2,1);
+        }
     }
 }
